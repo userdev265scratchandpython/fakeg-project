@@ -22,11 +22,11 @@ if os.path.exists("fakeg_cli.winstconfig"):
                 val = val.lower()
                 if key == "IP":
                     IP = val
-                elif key == "SHOW_TIMESTAMP":
+                elif key == "PORT":
                     try:
                         port = str(int(port))
                     except Exception:
-                        print("Bad config: port cannoy be {port}")
+                        print(f"Bad config: port cannoy be {port}")
                         haderrs = 1
                 else:
                     haderrs = 1

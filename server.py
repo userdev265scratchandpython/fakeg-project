@@ -14,7 +14,7 @@ import psutil, os
 from logger import print, writelog, clearlogs
 
 CLIENT_LOGIN_PATH = "/accounts/ClientLogin"
-from config import MAX_REQUEST_SIZE, ALLOW_LOGS_CLEAR
+from config import MAX_REQUEST_SIZE, ALLOW_LOGS_CLEAR, IP, PORT
 
 ATOM_NS = "http://www.w3.org/2005/Atom"
 ET.register_namespace("", ATOM_NS)
@@ -236,8 +236,8 @@ class FakeGHandler(BaseHTTPRequestHandler):
 
 
 def make_server(
-    host="127.0.0.1",
-    port=8080,
+    host=IP,
+    port=PORT,
     accounts=None,
     tokens=None,
 ):

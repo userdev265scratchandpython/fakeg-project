@@ -3,6 +3,8 @@ ALLOW_LOGS_CLEAR = False
 SHOW_PRC_TS = True
 SHOW_LGC = True
 SHOW_TS = True
+IP = "0.0.0.0"
+PORT = 8080
 
 printqueue = []
 def print(text):
@@ -27,7 +29,15 @@ if os.path.exists("fakeg.winstconfig"):
                 key = data[0]
                 val = data[1]
                 val = val.lower()
-                if key == "MAX_REQ_SZ":
+                if key == "IP":
+                    IP = val
+                elif key == "SHOW_TIMESTAMP":
+                    try:
+                        port = str(int(port))
+                    except Exception:
+                        print("Bad config: port cannoy be {port}")
+                        haderrs = 1
+                elif key == "MAX_REQ_SZ":
                     try:
                         MAX_REQUEST_SIZE = int(val) * 1024
                     except:
@@ -89,6 +99,7 @@ print(f"Allow log clear on load : {str(ALLOW_LOGS_CLEAR)}")
 print(f"Show logger component   : {str(SHOW_LGC)}")
 print(f"Show timestamp          : {str(SHOW_TS)}")
 print(f"Show precise timestamp  : {str(SHOW_PRC_TS)}")
+print(f"IP and port             : {IP}:{PORT}")
 
 def GETQUEUE():
     return printqueue

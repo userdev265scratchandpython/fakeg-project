@@ -38,7 +38,7 @@ class TokenStore:
         for key, value in stored.items():
             for token in value:
                 self._tokens[token] = {"email": key.strip().lower()}
-                print(f"Re-activated token {token} for {key.strip().lower()}")
+                print(f"Re-activated a token for {key.strip().lower()}")
 
     def _save(self, email, token):
         path = os.path.join("authdata", email.strip().lower())
@@ -54,7 +54,6 @@ class TokenStore:
                 "email": email.strip().lower(),
             }
 
-        print(f"Issued token {token} for {email}")
         return token
 
     def validate(self, token):
@@ -129,5 +128,5 @@ class TokenStore:
                 while self._tokens:
                     token = next(iter(self._tokens))
                     self._tokens.pop(token)
-                    print(f"Cleared token: {token}")
+                    print(f"Unloaded a token.")
                 print(f"Cleared tokens")

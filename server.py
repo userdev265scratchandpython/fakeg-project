@@ -117,7 +117,7 @@ class FakeGHandler(BaseHTTPRequestHandler):
         pass
 
     def send_text(self, status, body):
-        print(f"Sent {status} - {body}")
+        print(f"Sent {status}")
         encoded = body.encode("utf-8")
 
         self.send_response(status)
@@ -134,7 +134,7 @@ class FakeGHandler(BaseHTTPRequestHandler):
         if auth.startswith("GoogleLogin auth="):
             token = auth.removeprefix("GoogleLogin auth=")
 
-        print(f"Got GET {self.path} | Token: {token or 'None'}")
+        print(f"Got GET {self.path}")
         if not token or not self.server.tokens.validate(token):
             self.send_text(401, "Error=NotAuthenticated\n")
         
@@ -205,7 +205,6 @@ class FakeGHandler(BaseHTTPRequestHandler):
 
             value = values[0]
             r = value if value else None
-            print(f"Field {name}: {r}")
             return r
 
         email = field("Email")

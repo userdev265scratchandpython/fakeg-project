@@ -24,7 +24,6 @@ class AccountStore:
             salt,
             180_000,
         )
-        print(f"Hashed {password} -> {r}")
         return r
 
     def add_account(self, email, password):
@@ -40,7 +39,6 @@ class AccountStore:
             "salt": salt,
             "password_hash": password_hash,
         }
-        print(f"Registered {email} :: {password}")
 
     def authenticate(self, email, password):
         email = email.strip().lower()
@@ -58,7 +56,6 @@ class AccountStore:
                 candidate,
                 account["password_hash"],
             )
-        print(f"Authenticated {account} :: {password} -> {r}")
         return r
 
     @classmethod

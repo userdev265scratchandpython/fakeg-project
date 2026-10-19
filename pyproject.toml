@@ -1,0 +1,16 @@
+[project]
+name = "fakeg"
+version = "1"
+description = "A replacement API server emulating legacy Google services"
+requires-python = "==3.12.*"
+dependencies = [
+    "psutil",
+    "2to3",
+    "dnspython",
+    "gdata",
+    "pylint",
+    "nuitka",
+]
+
+[tool.uv]
+package = false

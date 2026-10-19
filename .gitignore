@@ -1,0 +1,8 @@
+/logs/
+/server.build/
+/testcli.dist/
+/testcli.build/
+/server.dist/
+/authdata/
+/__pycache__/
+/.env/

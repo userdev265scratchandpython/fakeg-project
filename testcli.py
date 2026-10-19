@@ -7,8 +7,11 @@ import traceback
 import atom.http_core
 import gdata.blogger.client
 
-
-FAKEG_HOST = "127.0.0.1:8080"
+try:
+    from clientconfig import IP, PORT
+    FAKEG_HOST = f"{IP}:{PORT}"
+except:
+    FAKEG_HOST = f"127.0.0.1:8080"
 FAKEG_BASE_URL = f"http://{FAKEG_HOST}"
 FAKEG_LOGIN_URL = f"{FAKEG_BASE_URL}/accounts/ClientLogin"
 

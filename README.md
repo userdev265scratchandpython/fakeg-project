@@ -34,6 +34,9 @@ This project is not built to infringe on copyright and tries to reimplement ever
 This project is built SOLELY for linux. Windows users will need WSL and workarounds to use it.
 This software depends on the `uv` software. verify availability for your distro before complaining.
 
+### usage
+Run ./run_server.sh to build client and server. The script shows how to run client before starting server.
+
 ## why
 I started this project because I am strongly against E-waste and the discontinuation of Google Data API(API V2) has caused a surge in E-waste.
 I want to reimplement it so instead of throwing that old phone or tablet, you look at this and think "oh, something cool to do with it instead of throwing it away".
@@ -45,3 +48,4 @@ No, this will **not** recreate the 2G/3G network your phone or tablet depended o
 This project is held together by a motto, and a purpose, "keeping dead devices alive".
 What do I mean by this? I mean keeping working hardware and rebuilding services it depended on local-first.
 This doesn't mean "make a 3G or 2G network all over again", this means "rebuild servers it depended on without the original servers".
+

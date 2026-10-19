@@ -10,7 +10,7 @@ function/API      | working on PC(custom client based on legit) | working on and
 ------------------|---------------------------------------------|------------------------------------------------|----------
 google login      | yes(tcli, tcli2 and testcli)                | no/untested                                    | no
 blogger           | partly(implementation in progress)          | no(google login needed)                        | no
-youtube           | no(need official client working first       | no(google login and more needed)               | no
+youtube           | no(need official client working first)      | no(google login and more needed)               | no
 
 ## info
 ### project goal

@@ -25,7 +25,6 @@ if ALLOW_LOGS_CLEAR:
 def atom_tag(name):
     return f"{{{ATOM_NS}}}{name}"
 
-
 class BlogStore:
     def __init__(self):
         self.lock = Lock()
@@ -107,8 +106,62 @@ class FakeGHTTPServer(ThreadingHTTPServer):
         self.tokens = tokens
         self.blog_store = BlogStore()
 
-
 class FakeGHandler(BaseHTTPRequestHandler):
+    def handle_register(self):
+        import json
+
+        try:
+            length_header = self.headers.get("Content-Length")
+
+            if length_header is None:
+                self.send_text(411, "Error=LengthRequired\n")
+                return
+
+            length = int(length_header)
+
+            if length <= 0 or length > MAX_REQUEST_SIZE:
+                self.send_text(400, "Error=InvalidRequestSize\n")
+                return
+
+            body = self.rfile.read(length)
+            data = json.loads(body.decode("utf-8"))
+
+            if not isinstance(data, dict):
+                self.send_text(400, "Error=InvalidRequest\n")
+                return
+
+            email = data.get("email", "")
+            password = data.get("password", "")
+
+            if not isinstance(email, str) or not isinstance(password, str):
+                self.send_text(400, "Error=InvalidCredentials\n")
+                return
+
+            email = email.strip().lower()
+
+            if not email or not password:
+                self.send_text(400, "Error=MissingRequiredField\n")
+                return
+
+            # AccountStore should expose a thread-safe registration
+            # method for atomic duplicate checking and account creation.
+            if not self.server.accounts.register_account(email, password):
+                self.send_text(409, "Error=AccountAlreadyExists\n")
+                return
+
+            response = json.dumps({
+                "success": True,
+                "email": email,
+            })
+
+            self.send_text(201, response)
+
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            self.send_text(400, "Error=InvalidRequest\n")
+
+        except ValueError:
+            self.send_text(400, "Error=InvalidRequest\n")
+
     print("Initialized Winst FakeG handler")
     server_version = "FakeG/0.1"
     sys_version = ""
@@ -158,81 +211,82 @@ class FakeGHandler(BaseHTTPRequestHandler):
             self.send_text(404, "Not Found\n")
 
     def do_POST(self):
-        if self.path != CLIENT_LOGIN_PATH:
+        if self.path == CLIENT_LOGIN_PATH:
+            content_type = self.headers.get("Content-Type", "")
+            media_type = content_type.split(";", 1)[0].strip().lower()
+
+            if media_type != "application/x-www-form-urlencoded":
+                self.send_text(
+                    415,
+                    "Error=UnsupportedMediaType\n",
+                )
+                return
+
+            try:
+                length_header = self.headers.get("Content-Length")
+
+                if length_header is None:
+                    self.send_text(411, "Error=LengthRequired\n")
+                    return
+
+                length = int(length_header)
+
+                if length < 0:
+                    self.send_text(400, "Error=InvalidContentLength\n")
+                    return
+
+                if length > MAX_REQUEST_SIZE:
+                    self.send_text(413, "Error=RequestTooLarge\n")
+                    return
+
+                body = self.rfile.read(length).decode("utf-8")
+                fields = parse_qs(body, keep_blank_values=True)
+
+            except (ValueError, UnicodeDecodeError):
+                self.send_text(400, "Error=InvalidRequest\n")
+                return
+
+            def field(name):
+                values = fields.get(name, [])
+
+                # Reject duplicate values instead of silently choosing one.
+                if len(values) != 1:
+                    r = None
+
+                value = values[0]
+                r = value if value else None
+                return r
+
+            email = field("Email")
+            password = field("Passwd")
+            service = field("service")
+            source = field("source")
+
+            # ClientLogin's historical request fields are Email, Passwd,
+            # service, and source. This particular error label is a FakeG
+            # policy; exact legacy clients may expect different error details.
+            if not all((email, password, service, source)):
+                self.send_text(
+                    400,
+                    "Error=MissingRequiredField\n",
+                )
+                return
+
+            if not self.server.accounts.authenticate(email, password):
+                self.send_text(403, "Error=BadAuthentication\n")
+                return
+
+            token = self.server.tokens.issue(email)
+
+            # Minimal success response for this first compatibility slice.
+            # Historical deployments could return additional fields such as
+            # SID and LSID; those are not implemented in this prototype.
+            self.send_text(200, f"Auth={token}\n")
+        elif self.path == "/accounts/Register":
+            self.handle_register()
+            return
+        else:
             self.send_text(404, "Not Found\n")
-            return
-
-        content_type = self.headers.get("Content-Type", "")
-        media_type = content_type.split(";", 1)[0].strip().lower()
-
-        if media_type != "application/x-www-form-urlencoded":
-            self.send_text(
-                415,
-                "Error=UnsupportedMediaType\n",
-            )
-            return
-
-        try:
-            length_header = self.headers.get("Content-Length")
-
-            if length_header is None:
-                self.send_text(411, "Error=LengthRequired\n")
-                return
-
-            length = int(length_header)
-
-            if length < 0:
-                self.send_text(400, "Error=InvalidContentLength\n")
-                return
-
-            if length > MAX_REQUEST_SIZE:
-                self.send_text(413, "Error=RequestTooLarge\n")
-                return
-
-            body = self.rfile.read(length).decode("utf-8")
-            fields = parse_qs(body, keep_blank_values=True)
-
-        except (ValueError, UnicodeDecodeError):
-            self.send_text(400, "Error=InvalidRequest\n")
-            return
-
-        def field(name):
-            values = fields.get(name, [])
-
-            # Reject duplicate values instead of silently choosing one.
-            if len(values) != 1:
-                r = None
-
-            value = values[0]
-            r = value if value else None
-            return r
-
-        email = field("Email")
-        password = field("Passwd")
-        service = field("service")
-        source = field("source")
-
-        # ClientLogin's historical request fields are Email, Passwd,
-        # service, and source. This particular error label is a FakeG
-        # policy; exact legacy clients may expect different error details.
-        if not all((email, password, service, source)):
-            self.send_text(
-                400,
-                "Error=MissingRequiredField\n",
-            )
-            return
-
-        if not self.server.accounts.authenticate(email, password):
-            self.send_text(403, "Error=BadAuthentication\n")
-            return
-
-        token = self.server.tokens.issue(email)
-
-        # Minimal success response for this first compatibility slice.
-        # Historical deployments could return additional fields such as
-        # SID and LSID; those are not implemented in this prototype.
-        self.send_text(200, f"Auth={token}\n")
-
 
 def make_server(
     host=IP,
@@ -241,7 +295,8 @@ def make_server(
     tokens=None,
 ):
     if accounts is None:
-        accounts = AccountStore.for_local_development()
+        # AccountStore.for_local_development()
+        accounts = AccountStore()
 
     if tokens is None:
         tokens = TokenStore()
@@ -270,6 +325,7 @@ def main():
     finally:
         server.tokens.clear()
         server.server_close()
+        accounts.write()
         writelog()
 
 

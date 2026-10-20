@@ -5,4 +5,7 @@
 /server.dist/
 /authdata/
 /__pycache__/
-/.env/
+/.env
+/fakeg.winstconfig
+/accounts.wdb
+/fakeg_cli.winstconfig
